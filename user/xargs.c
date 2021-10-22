@@ -27,25 +27,26 @@ void xargs(int argcToCall, const char *argvToCall[]) {
         strcpy(argToPass[p], argvToCall[p + 1]);
     }
 
-    for (int i = 0; i < MAXARG; i++)
+    for (int i = 0; i < MAXARG; i++) {
         ptrArg[i] = argToPass[i];
+    }
 
     char *p = argToPass[indexArg];
     while (read(0, &buf, 1)) {
         switch (buf) {
             case '\n':
                 *p = '\0';
-                ptrArg[indexArg+1] = 0;
+                ptrArg[indexArg + 1] = 0;
 
                 run(ptrArg);
 
-                ptrArg[indexArg+1] = argToPass[indexArg+1];
+                ptrArg[indexArg + 1] = argToPass[indexArg + 1];
                 p = argToPass[argcToCall];
                 break;
 
             case ' ':
                 *p = '\0';
-                p=argToPass[++indexArg];
+                p = argToPass[++indexArg];
                 break;
 
             default:

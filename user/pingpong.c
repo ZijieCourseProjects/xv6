@@ -7,7 +7,7 @@
 #include "../user/user.h"
 
 enum {
-    READ=0,WRITE
+    READ = 0, WRITE
 };
 
 int main(int argc, const char *argv[]) {
@@ -18,18 +18,18 @@ int main(int argc, const char *argv[]) {
     pipe(reverse);
     char buf;
 
-    if((pid = fork())){
+    if ((pid = fork())) {
         close(p[READ]);
-        write(p[WRITE],&pid,sizeof(int));
+        write(p[WRITE], &pid, sizeof(int));
         wait(0);
-        read(reverse[READ],&buf,1);
-        printf("%d: received pong\n",getpid());
+        read(reverse[READ], &buf, 1);
+        printf("%d: received pong\n", getpid());
         exit(0);
-    }else{
+    } else {
         close(p[READ]);
-        read(p[READ],&buf,sizeof(int));
-        printf("%d: received ping\n",buf);
-        write(reverse[WRITE],&buf,sizeof(int));
+        read(p[READ], &buf, sizeof(int));
+        printf("%d: received ping\n", buf);
+        write(reverse[WRITE], &buf, sizeof(int));
         exit(0);
     }
 }
