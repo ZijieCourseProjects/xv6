@@ -8,7 +8,6 @@
 #include "../kernel/fs.h"
 
 void find(const char *loc, const char *name) {
-    printf("Now at :%s\n", loc);
     char buf[500], *p;
     int fd;
     struct dirent dr;
@@ -52,7 +51,6 @@ void find(const char *loc, const char *name) {
                 }
                 break;
             case T_DIR:
-                printf("rec start at %s\n", buf);
                 find(buf, name);
         }
     }
