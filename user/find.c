@@ -40,7 +40,7 @@ void find(const char *loc, const char *name) {
         p[DIRSIZ] = 0;
 
         if (stat(buf, &st) < 0) {
-            printf("ls: cannot stat %s\n", buf);
+            printf("find: cannot stat %s\n", buf);
             continue;
         }
 
