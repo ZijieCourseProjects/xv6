@@ -17,6 +17,7 @@ OBJS = \
   $K/kalloc.o \
   $K/spinlock.o \
   $K/string.o \
+  $K/sysinfo.o \
   $K/main.o \
   $K/vm.o \
   $K/proc.o \
@@ -137,6 +138,7 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 UPROGS=\
 	$U/_cat\
 	$U/_trace\
+	$U/_sysinfotest\
 	$U/_sleep\
 	$U/_echo\
 	$U/_pingpong\

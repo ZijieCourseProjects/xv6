@@ -17,6 +17,7 @@ sub entry {
 	
 entry("fork");
 entry("trace");
+entry("sysinfo");
 entry("exit");
 entry("wait");
 entry("pipe");

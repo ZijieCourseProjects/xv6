@@ -63,6 +63,8 @@ void            ramdiskrw(struct buf*);
 void*           kalloc(void);
 void            kfree(void *);
 void            kinit(void);
+int             countFree(void);
+
 
 // log.c
 void            initlog(int, struct superblock*);
@@ -84,6 +86,7 @@ void            printfinit(void);
 // proc.c
 int             cpuid(void);
 void            exit(int);
+int             countProc(void);
 int             fork(void);
 int             growproc(int);
 pagetable_t     proc_pagetable(struct proc *);
