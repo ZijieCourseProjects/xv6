@@ -90,8 +90,9 @@ endif
 
 LDFLAGS = -z max-page-size=4096
 
+
 $K/kernel: $(OBJS) $K/kernel.ld $U/initcode
-	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS) 
+	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS)
 	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
 	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
 
@@ -103,6 +104,7 @@ $U/initcode: $U/initcode.S
 
 tags: $(OBJS) _init
 	etags *.S *.c
+
 
 ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
 
@@ -134,12 +136,17 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 
 UPROGS=\
 	$U/_cat\
+	$U/_sleep\
 	$U/_echo\
+	$U/_pingpong\
+	$U/_primes\
 	$U/_forktest\
 	$U/_grep\
 	$U/_init\
+	$U/_find\
 	$U/_kill\
 	$U/_ln\
+	$U/_xargs\
 	$U/_ls\
 	$U/_mkdir\
 	$U/_rm\
@@ -202,6 +209,8 @@ QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 
 qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS)
+
+compile: $K/kernel fs.img
 
 .gdbinit: .gdbinit.tmpl-riscv
 	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
