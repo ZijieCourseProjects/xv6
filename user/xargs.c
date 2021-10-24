@@ -21,7 +21,7 @@ void xargs(int argcToCall, const char *argvToCall[]) {
     char argToPass[MAXARG][64];
     char *ptrArg[MAXARG];
     char buf;
-    short indexArg = argcToCall;
+    int indexArg = argcToCall;
 
     for (int p = 0; p < argcToCall; p++) {
         strcpy(argToPass[p], argvToCall[p + 1]);
