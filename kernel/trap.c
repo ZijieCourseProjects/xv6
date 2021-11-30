@@ -71,18 +71,33 @@ usertrap(void)
   } else if(scause == 13 || scause == 15) {
     //scause == 13:Load page fault , scause == 15:Store/AMO page fault
     //deal with page fault
+    uint64 memaccess = r_stval();
+
+    if (memaccess >= p->sz){
+      p->killed = 1;
+      exit(-1);
+    }
+
+    if(memaccess < p->trapframe->sp){
+      exit(-1);
+    }
 
     void * memalloc = kalloc();
     if (memalloc == 0){
-      printf("page allocation failed!\n");
-      p->killed=1;
-    }
-    memset(memalloc,0,PGSIZE);
-    if(mappages(p->pagetable,PGROUNDDOWN(r_stval()),PGSIZE,(uint64)memalloc,PTE_W|PTE_X|PTE_R|PTE_U) != 0){
-      printf("page mapping failed!\n");
-      p->killed = 1;
+      p->killed= 1;
+      exit(-1);
     }
 
+    memset(memalloc,0,PGSIZE);
+
+    if(mappages(p->pagetable,PGROUNDDOWN(memaccess),PGSIZE,(uint64)memalloc,PTE_W|PTE_X|PTE_R|PTE_U) != 0){
+      kfree(memalloc);
+      p->killed = 1;
+      exit(-1);
+    }
+
+  }else{
+    p->killed = 1;
   }
 
   if(p->killed)

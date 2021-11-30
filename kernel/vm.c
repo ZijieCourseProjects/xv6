@@ -5,6 +5,8 @@
 #include "riscv.h"
 #include "defs.h"
 #include "fs.h"
+#include "spinlock.h"
+#include "proc.h"
 
 /*
  * the kernel's page table.
@@ -91,6 +93,7 @@ walk(pagetable_t pagetable, uint64 va, int alloc)
 // Look up a virtual address, return the physical address,
 // or 0 if not mapped.
 // Can only be used to look up user pages.
+/*
 uint64
 walkaddr(pagetable_t pagetable, uint64 va)
 {
@@ -105,6 +108,39 @@ walkaddr(pagetable_t pagetable, uint64 va)
     return 0;
   if((*pte & PTE_V) == 0)
     return 0;
+  if((*pte & PTE_U) == 0)
+    return 0;
+  pa = PTE2PA(*pte);
+  return pa;
+}
+*/
+uint64
+walkaddr(pagetable_t pagetable, uint64 va)
+{
+  pte_t *pte;
+  uint64 pa;
+  struct proc *p=myproc();
+
+  if(va >= MAXVA)
+    return 0;
+
+  pte = walk(pagetable, va, 0);
+  if(pte == 0 || (*pte&PTE_V)==0)
+  {
+    if(va>=p->sz) return 0;
+    if(va<p->trapframe->sp) return 0;
+    char *mem=kalloc();
+    if(mem==0) return 0;
+    memset(mem,0,PGSIZE);
+    uint64 a=PGROUNDUP(va);
+    if(mappages(p->pagetable,a,PGSIZE,(uint64)mem,PTE_W|PTE_X|PTE_R|PTE_U)!=0)
+    {
+      kfree(mem);
+      return 0;
+    }
+    pte=walk(pagetable,va,0);
+  }
+
   if((*pte & PTE_U) == 0)
     return 0;
   pa = PTE2PA(*pte);
@@ -181,7 +217,7 @@ uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
 
   for(a = va; a < va + npages*PGSIZE; a += PGSIZE){
     if((pte = walk(pagetable, a, 0)) == 0)
-      panic("uvmunmap: walk");
+      continue;
     if((*pte & PTE_V) == 0)
       continue;
     if(PTE_FLAGS(*pte) == PTE_V)
@@ -314,10 +350,10 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
   char *mem;
 
   for(i = 0; i < sz; i += PGSIZE){
-    if((pte = walk(old, i, 0)) == 0)
-      panic("uvmcopy: pte should exist");
-    if((*pte & PTE_V) == 0)
-      panic("uvmcopy: page not present");
+    if((pte = walk(old, i, 0)) == 0) //walk找不到PTE，说明这个页还没有分配
+      continue;
+    if((*pte & PTE_V) == 0) //PTE not Valid -> 没有分配
+      continue;
     pa = PTE2PA(*pte);
     flags = PTE_FLAGS(*pte);
     if((mem = kalloc()) == 0)
