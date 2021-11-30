@@ -49,8 +49,9 @@ usertrap(void)
   
   // save user program counter.
   p->trapframe->epc = r_sepc();
-  
-  if(r_scause() == 8){
+
+  int scause = r_scause();
+  if(scause == 8){
     // system call
 
     if(p->killed)
@@ -67,10 +68,21 @@ usertrap(void)
     syscall();
   } else if((which_dev = devintr()) != 0){
     // ok
-  } else {
-    printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
-    printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
-    p->killed = 1;
+  } else if(scause == 13 || scause == 15) {
+    //scause == 13:Load page fault , scause == 15:Store/AMO page fault
+    //deal with page fault
+
+    void * memalloc = kalloc();
+    if (memalloc == 0){
+      printf("page allocation failed!\n");
+      p->killed=1;
+    }
+    memset(memalloc,0,PGSIZE);
+    if(mappages(p->pagetable,PGROUNDDOWN(r_stval()),PGSIZE,(uint64)memalloc,PTE_W|PTE_X|PTE_R|PTE_U) != 0){
+      printf("page mapping failed!\n");
+      p->killed = 1;
+    }
+
   }
 
   if(p->killed)

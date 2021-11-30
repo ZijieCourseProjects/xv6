@@ -281,6 +281,8 @@ endif
 qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS)
 
+compile: $K/kernel fs.img
+
 .gdbinit: .gdbinit.tmpl-riscv
 	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
 
