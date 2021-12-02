@@ -65,7 +65,31 @@ usertrap(void)
     intr_on();
 
     syscall();
-  } else if((which_dev = devintr()) != 0){
+  }else if (r_scause() == 15) // write page fault
+  {
+    uint64 va = r_stval();
+    if (va >= MAXVA)
+      exit(-1);
+    pte_t *pte;
+    pte = walk(p->pagetable, va, 0);
+    if (pte == 0)
+      exit(-1);
+    if ((*pte & PTE_U) == 0 || (*pte & PTE_V) == 0 || (*pte & PTE_C) == 0)
+      exit(-1);
+    // allocate a new page
+    uint64 pa = PTE2PA(*pte); // original physical address
+    uint64 ka = (uint64) kalloc(); // newly allocated physical address
+
+    if (ka == 0) {
+      exit(-1);
+    }
+    memmove((char *) ka, (char *) pa, PGSIZE); // copy the old page to the new page
+    kfree((void *) pa);
+    uint flags = PTE_FLAGS(*pte);
+    *pte = PA2PTE(ka) | flags | PTE_W;
+    *pte &= ~PTE_C;
+  }
+  else if((which_dev = devintr()) != 0){
     // ok
   } else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
